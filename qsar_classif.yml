@@ -1,0 +1,24 @@
+name: qsar_classif_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - imbalanced-learn
+  - rdkit
+  - tqdm
+  - shap
+  - joblib
+  - xgboost
+  - ipywidgets
+  - pandas
+  - numpy
+  - jupyterlab
+  - scikit-learn
+  - seaborn
+  - python=3.11
+  - pip
+  - matplotlib
+  - scikit-optimize
+  - pyyaml
+  - deap
+prefix: C:\Users\elias\miniconda3\envs\qsar_classif_env
