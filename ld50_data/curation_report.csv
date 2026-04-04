@@ -1,0 +1,9 @@
+Step,Description,Entries_before,Entries_after,Removed,Removed_%
+1.0,"Semantic filtering (acute, rat, oral, exact value)",129416,60827,68589,53.0
+2.0,Target cleaning (numeric),60827,60727,100,0.16
+3.0,SMILES parsing,60727,40551,20176,33.22
+3.5,Sanitization filter,40551,40551,0,0.0
+4.0,Filtering non-organic molecules,40551,38499,2052,5.06
+5.0,Structural standardization (failed removed),38499,38493,6,0.02
+6.0,Canonical SMILES generation,38493,38488,5,0.01
+7.0,Deduplication (lowest LD50 kept),38488,19238,19250,50.02

@@ -1,0 +1,2 @@
+Model,Target,Threshold,Accuracy,Bal_Accuracy,Precision,Recall,Specificity,F1_score,ROC_AUC,PR_AUC,MCC
+lr,car,0.5,0.8867924528301887,0.5,0.8867924528301887,1.0,0.0,0.94,0.30851063829787234,0.8581587720881684,0.0
