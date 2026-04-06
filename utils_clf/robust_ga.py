@@ -5,6 +5,13 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 import numpy as np
 import random
 
+from utils_clf.config import (
+    RANDOM_STATE, CV_FOLDS,
+    GA_N_GEN, GA_POP_SIZE, GA_MAX_FEATURES,
+    GA_LAMBDA_PENALTY, GA_MAX_CACHE,
+    GA_CXPB, GA_MUTPB
+)
+
 # ==========================================================
 # GA Feature Selection (Clasificación - Versión robusta)
 # ==========================================================
@@ -14,9 +21,9 @@ def ga_feature_selection(
     X,
     y,
     descriptor_names,
-    n_gen=40,
-    pop_size=60,
-    random_state=42
+    n_gen=GA_N_GEN,
+    pop_size=GA_POP_SIZE,
+    random_state=RANDOM_STATE
 ):
 
     # ======================================================
@@ -31,7 +38,7 @@ def ga_feature_selection(
     # ======================================================
     # CV y métrica
     # ======================================================
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
+    cv = StratifiedKFold(n_splits=CV_FOLDS, shuffle=True, random_state=random_state)
     mcc_scorer = make_scorer(matthews_corrcoef)
 
     # ======================================================
@@ -49,7 +56,6 @@ def ga_feature_selection(
     # Cache (controlado)
     # ======================================================
     fitness_cache = {}
-    MAX_CACHE = 10000
 
     # ======================================================
     # Fitness function
@@ -60,8 +66,7 @@ def ga_feature_selection(
         if key in fitness_cache:
             return fitness_cache[key]
 
-        # Control tamaño cache
-        if len(fitness_cache) > MAX_CACHE:
+        if len(fitness_cache) > GA_MAX_CACHE:
             fitness_cache.clear()
 
         n_selected = sum(individual)
@@ -88,28 +93,18 @@ def ga_feature_selection(
             mean_score = scores.mean()
             std_score = scores.std()
 
-            # -----------------------------
-            # Penalización por número de features (CLAVE)
-            # -----------------------------
-            lambda_penalty = 0.005
-            complexity_penalty = lambda_penalty * n_selected
+            # Penalización por número de features
+            complexity_penalty = GA_LAMBDA_PENALTY * n_selected
 
-            # -----------------------------
-            # Penalización por exceder límite
-            # -----------------------------
-            MAX_FEATURES = 30
+            # Penalización por exceder límite de features
             excess_penalty = 0.0
-            if n_selected > MAX_FEATURES:
-                excess_penalty = 0.2 * (n_selected - MAX_FEATURES)
+            if n_selected > GA_MAX_FEATURES:
+                excess_penalty = 0.2 * (n_selected - GA_MAX_FEATURES)
 
-            # -----------------------------
-            # Penalización estabilidad
-            # -----------------------------
+            # Penalización por inestabilidad entre folds
             stability_penalty = 0.2 * std_score
 
-            # -----------------------------
             # Fitness final
-            # -----------------------------
             if mean_score <= 0:
                 fitness = -1.0
             else:
@@ -180,8 +175,8 @@ def ga_feature_selection(
         toolbox,
         mu=pop_size,
         lambda_=pop_size * 2,
-        cxpb=0.7,
-        mutpb=0.3,
+        cxpb=GA_CXPB,
+        mutpb=GA_MUTPB,
         ngen=n_gen,
         stats=stats,
         halloffame=hof,

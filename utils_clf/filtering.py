@@ -2,8 +2,10 @@ from sklearn.feature_selection import VarianceThreshold
 import pandas as pd
 import numpy as np
 
+from utils_clf.config import VAR_THRESHOLD, CORR_THRESHOLD
 
-def filter_features(X_train, X_test, var_threshold=0.01, corr_threshold=0.9):
+
+def filter_features(X_train, X_test, var_threshold=VAR_THRESHOLD, corr_threshold=CORR_THRESHOLD):
 
     # VARIANCE FILTER
     print(f"Variance Filter (threshold {var_threshold})")

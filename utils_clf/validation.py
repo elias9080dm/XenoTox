@@ -6,6 +6,8 @@ from sklearn.metrics import (
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from utils_clf.config import DECISION_THRESHOLD
+
 
 def compute_metrics(final_model, X_test, y_test, model_name, target, data_type="internal"):
     """
@@ -21,7 +23,7 @@ def compute_metrics(final_model, X_test, y_test, model_name, target, data_type="
     y_proba = final_model.predict_proba(X_test)[:, pos_index]
 
     # Threshold
-    y_pred = (y_proba >= 0.5).astype(int)
+    y_pred = (y_proba >= DECISION_THRESHOLD).astype(int)
 
     # 2. Metrics
     acc = accuracy_score(y_test, y_pred)
@@ -47,7 +49,7 @@ def compute_metrics(final_model, X_test, y_test, model_name, target, data_type="
     metrics_df = pd.DataFrame([{
         "Model": model_name,
         "Target": target,
-        "Threshold": 0.5,
+        "Threshold": DECISION_THRESHOLD,
         "Accuracy": acc,
         "Bal_Accuracy": bal_acc,
         "Precision": precision,

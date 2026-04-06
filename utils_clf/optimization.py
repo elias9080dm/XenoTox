@@ -10,6 +10,8 @@ from sklearn.base import clone
 from collections import Counter
 import joblib
 
+from utils_clf.config import RANDOM_STATE, CV_FOLDS, N_TRIALS
+
 
 def optimize_model(X_train_proc, y_encoded, model_name):
     """
@@ -24,9 +26,9 @@ def optimize_model(X_train_proc, y_encoded, model_name):
 
     # 2. CV
     cv = StratifiedKFold(
-        n_splits=5,
+        n_splits=CV_FOLDS,
         shuffle=True,
-        random_state=42
+        random_state=RANDOM_STATE
     )
 
     # 3. Base models
@@ -41,7 +43,7 @@ def optimize_model(X_train_proc, y_encoded, model_name):
 
         base_model = XGBClassifier(
             eval_metric="logloss",
-            random_state=42,
+            random_state=RANDOM_STATE,
             n_jobs=-1,
             tree_method="hist",
             scale_pos_weight=scale_pos_weight
@@ -51,7 +53,7 @@ def optimize_model(X_train_proc, y_encoded, model_name):
         base_model = RandomForestClassifier(
             n_jobs=-1,
             class_weight="balanced",
-            random_state=42
+            random_state=RANDOM_STATE
         )
 
     elif model_name == "svm":
@@ -59,7 +61,7 @@ def optimize_model(X_train_proc, y_encoded, model_name):
             probability=True,
             class_weight="balanced",
             kernel="rbf",
-            random_state=42
+            random_state=RANDOM_STATE
         )
     elif model_name == "lr":
         base_model = LogisticRegression(
@@ -67,7 +69,7 @@ def optimize_model(X_train_proc, y_encoded, model_name):
             penalty="l2",
             class_weight="balanced",
             max_iter=2000,
-            random_state=42,
+            random_state=RANDOM_STATE,
         )
 
     else:
@@ -150,11 +152,11 @@ def optimize_model(X_train_proc, y_encoded, model_name):
     study = optuna.create_study(
         study_name=f"{model_name}_study",
         direction="maximize",
-        sampler=optuna.samplers.TPESampler(seed=42),
+        sampler=optuna.samplers.TPESampler(seed=RANDOM_STATE),
         pruner=pruner,
     )
 
-    study.optimize(objective, n_trials=25)
+    study.optimize(objective, n_trials=N_TRIALS)
 
     # 6. Final training with BEST parameters
     final_model = clone(base_model)
@@ -196,9 +198,9 @@ def train_stacking_model(
 
     # 2. CV stacking
     cv_stack = StratifiedKFold(
-        n_splits=5,
+        n_splits=CV_FOLDS,
         shuffle=True,
-        random_state=42
+        random_state=RANDOM_STATE
     )
 
     # 3. Meta-model
@@ -209,7 +211,7 @@ def train_stacking_model(
         class_weight="balanced",
         max_iter=1000,
         solver="liblinear",
-        random_state=42
+        random_state=RANDOM_STATE
     )
 
     # 4. Final Stacking
@@ -228,14 +230,22 @@ def train_stacking_model(
     return stacking_model
 
 
-def save_model(BASE_DIR, target, model_name, final_model, full_descriptor_list, selected_features, preprocessor):
+def save_model(BASE_DIR, target, model_name, final_model,
+               full_descriptor_list, filtered_features, selected_features, preprocessor):
+    """
+    Save model and all components needed for prediction.
 
+    Prediction pipeline for a new molecule:
+      1. Calculate descriptors → select full_descriptor_list columns
+      2. Filter to filtered_features → apply preprocessor.transform()
+      3. Subset to selected_features → predict
+    """
     model_filename = f"{BASE_DIR}/outputs_clf/{target}/models/best_model_{target}_{model_name}.pkl"
 
-    # Save model and components
     model_components = {
         "model": final_model,
         "full_descriptor_list": full_descriptor_list,
+        "filtered_features": filtered_features,
         "selected_features": selected_features,
         "preprocessor": preprocessor,
         "target": target,
